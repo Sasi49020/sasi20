@@ -1,0 +1,50 @@
+#include <BluetoothSerial.h> 
+ 
+#define LED_PIN_INTERNAL 2 // Built-in LED pin 
+#define LED_PIN_EXTERNAL 5 // External LED pin 
+#define TEMPERATURE_SENSOR_PIN 34 // Temperature sensor pin 
+#define TOUCH_SENSOR_PIN 15 // Touch sensor pin 
+#define HALL_EFFECT_SENSOR_PIN 13 // Hall effect sensor pin 
+ 
+BluetoothSerial SerialBT; 
+ 
+bool ledStateInternal = false; bool ledStateExternal = false; 
+ 
+void setup() {     Serial.begin(115200); 
+    SerialBT.begin("ESP32 Home Automation"); // Bluetooth device name 
+ 
+    pinMode(LED_PIN_INTERNAL, OUTPUT);     pinMode(LED_PIN_EXTERNAL, OUTPUT);     pinMode(TOUCH_SENSOR_PIN, INPUT);     pinMode(HALL_EFFECT_SENSOR_PIN, INPUT);  
+} 
+ 
+void loop() {     if (SerialBT.available()) {         char command = SerialBT.read();         if (command == '1') {             digitalWrite(LED_PIN_EXTERNAL, HIGH);             ledStateInternal = true;         } else if (command == '0') {             digitalWrite(LED_PIN_EXTERNAL, LOW);             ledStateInternal = false; 
+        } 
+    } 
+ 
+    // Read temperature sensor     float temperature = readTemperatureSensor(); 
+    Serial.print("Temperature: "); 
+    Serial.print(temperature); 
+    Serial.println(" °C"); 
+ 
+    // Check temperature threshold and control LEDs     if (temperature > 24 && !ledStateInternal) {         digitalWrite(LED_PIN_INTERNAL, HIGH);         ledStateInternal = true; 
+    } else if (temperature <= 20 && ledStateInternal) {         digitalWrite(LED_PIN_INTERNAL, LOW);         ledStateInternal = false; 
+    } 
+ 
+    if (temperature > 30 && !ledStateExternal) {         digitalWrite(LED_PIN_INTERNAL, HIGH);         ledStateExternal = true; 
+    } else if (temperature <= 30 && ledStateExternal) {         digitalWrite(LED_PIN_INTERNAL, LOW);         ledStateExternal = false; 
+    } 
+ 
+    // Read touch sensor 
+    bool touchState = digitalRead(TOUCH_SENSOR_PIN); 
+    Serial.print("Touch Sensor: "); 
+    Serial.println(touchState); 
+ 
+    // Read hall effect sensor     bool hallEffectState = digitalRead(HALL_EFFECT_SENSOR_PIN);     Serial.print("Hall Effect Sensor: "); 
+    Serial.println(hallEffectState); 
+ 
+    delay(1000); // Adjust delay as needed 
+} 
+ 
+float readTemperatureSensor() { 
+    // Example function to read temperature from the sensor     // You would need to implement this based on your actual sensor     return 25.0; // Placeholder, replace with actual reading 
+} 
+
